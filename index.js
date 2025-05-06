@@ -1,8 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const fetch = require('node-fetch');
-const qrcode = require('qrcode-terminal');
+const qrcode = require('qrcode'); // Only keep this import
 const fs = require('fs');
-const qrcode = require('qrcode');
 
 // Initialize WhatsApp client with authentication
 const client = new Client({
