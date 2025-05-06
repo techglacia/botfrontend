@@ -1,6 +1,8 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const fetch = require('node-fetch');
 const qrcode = require('qrcode-terminal');
+const fs = require('fs');
+const qrcode = require('qrcode');
 
 // Initialize WhatsApp client with authentication
 const client = new Client({
@@ -20,8 +22,10 @@ const ADMIN_NUMBER = '923705208893@c.us'; // Replace with your number in this fo
 
 // QR Code generation for authentication
 client.on('qr', (qr) => {
-    console.log('Scan this QR code to authenticate your WhatsApp account:');
-    qrcode.generate(qr, { small: true });
+    qrcode.toFile('qrcode.png', qr, (err) => {
+        if (err) throw err;
+        console.log('QR Code saved to qrcode.png');
+    });
 });
 
 // Connection status updates
