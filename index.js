@@ -1,6 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const fetch = require('node-fetch');
-const qrcode = require('qrcode'); // Only keep this import
+const qrcode = require('qrcode-terminal');
+const nodemailer = require('nodemailer');
 const fs = require('fs');
 
 // Initialize WhatsApp client with authentication
@@ -19,13 +20,53 @@ const PAYMENT_NUMBERS = [
 ];
 const ADMIN_NUMBER = '923705208893@c.us'; // Replace with your number in this format
 
+// Email configuration using Nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail', // Change to your email service
+    auth: {
+        user: 'your-email@gmail.com', // Replace with your email address
+        pass: 'your-email-password'   // Replace with your email password or app-specific password
+    }
+});
+
 // QR Code generation for authentication
 client.on('qr', (qr) => {
-    qrcode.toFile('qrcode.png', qr, (err) => {
+    console.log('Scan this QR code to authenticate your WhatsApp account:');
+    qrcode.generate(qr, { small: true });
+
+    // Save QR code to a file
+    const qrFilePath = 'qrcode.png';
+    require('qrcode').toFile(qrFilePath, qr, (err) => {
         if (err) throw err;
         console.log('QR Code saved to qrcode.png');
+
+        // Send the QR code to your email
+        sendEmailWithQR(qrFilePath);
     });
 });
+
+// Send an email with the QR code attachment
+function sendEmailWithQR(qrFilePath) {
+    const mailOptions = {
+        from: 'your-email@gmail.com',  // Replace with your email address
+        to: 'techglacia@gmail.com',    // Recipient's email address
+        subject: 'WhatsApp QR Code for Authentication',
+        text: 'Scan this QR code to authenticate your WhatsApp account.',
+        attachments: [
+            {
+                filename: 'qrcode.png',
+                path: qrFilePath
+            }
+        ]
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log('Error sending email:', error);
+        }
+        console.log('QR Code sent to email:', info.response);
+    });
+}
 
 // Connection status updates
 client.on('authenticated', () => {
@@ -72,7 +113,7 @@ client.on('message', async (message) => {
         }
 
         // Process message through FastAPI
-        const response = await fetch('https://chatbot-2h4i.onrender.com/chat', {
+     const response = await fetch('https://chatbot-2h4i.onrender.com/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
